@@ -1,0 +1,289 @@
+nutrisphere/
+├── apps/
+│   ├── mobile/
+│   │   ├── App.tsx
+│   │   └── src/
+│   │       ├── screens/
+│   │       ├── utils/
+│   │       ├── hooks/
+│   ├── backend/
+│   │   ├── server.js
+│   │   ├── routes/
+│   │   ├── controllers/
+│   │   ├── services/
+│   │   ├── db/
+│   │   ├── .env.example
+├── packages/
+│   └── shared/
+│       ├── types.ts
+├── README.md
+import React from 'react';
+import { NavigationContainer } from '@react-navigation/native';
+import { createStackNavigator } from '@react-navigation/stack';
+import AuthScreen from './src/screens/AuthScreen';
+import DemoScreen from './src/screens/DemoScreen';
+import ActivateScreen from './src/screens/ActivateScreen';
+import StripePaymentScreen from './src/screens/StripePaymentScreen';
+import HomeScreen from './src/screens/HomeScreen';
+import ProfileScreen from './src/screens/ProfileScreen';
+import MealPlanScreen from './src/screens/MealPlanScreen';
+import CommunityScreen from './src/screens/CommunityScreen';
+
+const Stack = createStackNavigator();
+
+export default function App() {
+  return (
+    <NavigationContainer>
+      <Stack.Navigator initialRouteName="Auth">
+        <Stack.Screen name="Auth" component={AuthScreen} options={{ headerShown: false }} />
+        <Stack.Screen name="Demo" component={DemoScreen} />
+        <Stack.Screen name="Activate" component={ActivateScreen} />
+        <Stack.Screen name="StripePayment" component={StripePaymentScreen} />
+        <Stack.Screen name="Home" component={HomeScreen} />
+        <Stack.Screen name="Profile" component={ProfileScreen} />
+        <Stack.Screen name="MealPlan" component={MealPlanScreen} />
+        <Stack.Screen name="Community" component={CommunityScreen} />
+      </Stack.Navigator>
+    </NavigationContainer>
+import React, { useState } from 'react';
+import { View, Text, Button, TextInput } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+export default function AuthScreen() {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const navigation = useNavigation();
+
+  async function handleLogin() {
+    // Replace with real Firebase authentication
+    if (email && password) navigation.replace('Demo');
+  }
+
+  return (
+    <View>
+      <Text>NutriSphere Login</Text>
+      <TextInput placeholder="Email" value={email} onChangeText={setEmail} />
+      <TextInput placeholder="Password" value={password} onChangeText={setPassword} secureTextEntry />
+      <Button title="Sign In" onPress={handleLogin} />
+    </View>
+  );
+}
+import React, { useEffect, useState } from 'react';
+import { View, Text, Button } from 'react-native';
+
+export default function DemoScreen({ navigation }) {
+  const [timeLeft, setTimeLeft] = useState(30 * 60);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setTimeLeft(t => t - 1);
+      if (timeLeft <= 0) navigation.replace('Activate');
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [timeLeft]);
+
+  return (
+    <View>
+      <Text>NutriSphere Demo Mode</Text>
+      <Text>Time Remaining: {Math.floor(timeLeft / 60)}:{timeLeft % 60}</Text>
+      <Text>You can explore features before activation.</Text>
+      <Button title="Activate Now" onPress={() => navigation.replace('Activate')} />
+    </View>
+  );
+}
+import React from 'react';
+import { View, Text, Button, Alert } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { selectPaymentProvider } from '../utils/selectPaymentProvider';
+
+export default function ActivateScreen() {
+  const navigation = useNavigation();
+  const provider = selectPaymentProvider();
+
+  function handleActivate() {
+    if (provider === 'razorpay') {
+      // Razorpay payment flow (add SDK integration)
+      Alert.alert('Razorpay payment flow would start here (SDK integration needed).');
+      navigation.replace('Home');
+    } else if (provider === 'stripe') {
+      navigation.navigate('StripePayment', { type: 'activation' });
+    }
+  }
+
+  return (
+    <View>
+      <Text>Pay to Activate Full Access</Text>
+      <Button title="Pay & Activate" onPress={handleActivate} />
+    </View>
+  );
+}
+import React from 'react';
+import { View, Text, Button, Alert } from 'react-native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+
+export default function StripePaymentScreen() {
+  const navigation = useNavigation();
+  const route = useRoute();
+  const { type } = route.params;
+
+  function handlePay() {
+    // Stripe payment flow (add SDK integration)
+    Alert.alert('Stripe payment flow would start here (SDK integration needed).');
+    navigation.replace('Home');
+  }
+
+  return (
+    <View>
+      <Text>Complete payment with Stripe</Text>
+      <Button title="Pay & Activate" onPress={handlePay} />
+    </View>
+  );
+}
+import React from 'react';
+import { View, Text, Button } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
+export default function HomeScreen() {
+  const navigation = useNavigation();
+  return (
+    <View>
+      <Text>Welcome to NutriSphere!</Text>
+      <Button title="Family Profiles" onPress={() => navigation.navigate('Profile')} />
+      <Button title="Meal Plan" onPress={() => navigation.navigate('MealPlan')} />
+      <Button title="Community" onPress={() => navigation.navigate('Community')} />
+    </View>
+  );
+}
+import React from 'react';
+import { View, Text } from 'react-native';
+
+export default function ProfileScreen() {
+  return (
+    <View>
+      <Text>Your Family Profiles</Text>
+      {/* List/Add/Edit family member children */}
+    </View>
+  );
+}
+import React from 'react';
+import { View, Text } from 'react-native';
+
+export default function MealPlanScreen() {
+  return (
+    <View>
+      <Text>AI-Generated Meal Plan</Text>
+      {/* Nutrition breakdown, edit portion sizes, etc. */}
+    </View>
+  );
+}
+import React from 'react';
+import { View, Text } from 'react-native';
+
+export default function CommunityScreen() {
+  return (
+    <View>
+      <Text>NutriSphere Community Q&A</Text>
+      {/* List of posts, tips, recipe sharing */}
+    </View>
+  );
+}
+export function selectPaymentProvider() {
+  // Use device/country info (or ask user)
+  // For demo, return 'razorpay' for India, 'stripe' otherwise
+  return 'razorpay'; // or 'stripe'
+}
+require('dotenv').config();
+const express = require('express');
+const cors = require('cors');
+const paymentRoutes = require('./routes/payment');
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.use('/api/payment', paymentRoutes);
+
+app.listen(3001, () => console.log('Backend running on http://localhost:3001'));
+const express = require('express');
+const { initiatePayment, verifyPayment, getPaymentStatus } = require('../controllers/payment');
+const router = express.Router();
+
+router.post('/initiate', initiatePayment); // Add auth middleware in production
+router.post('/verify', verifyPayment);
+router.get('/status', getPaymentStatus);
+
+module.exports = router;
+const { createOrder } = require('../services/paymentService');
+
+exports.initiatePayment = async (req, res) => {
+  const { amount, currency, provider, type } = req.body;
+  // You would get userId from auth in production
+  const userId = 'demo-user';
+  try {
+    const orderDetails = await createOrder({ amount, currency, provider, userId, type });
+    res.json(orderDetails);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
+exports.verifyPayment = async (req, res) => {
+  // Simulate instant success for demo
+  res.json({ success: true });
+};
+
+exports.getPaymentStatus = async (req, res) => {
+  // Simulate always unpaid for demo
+  res.json({ payment: null });
+};
+exports.createOrder = async ({ amount, currency, provider, userId, type }) => {
+  // For demo, just return dummy order/clientSecret
+  if (provider === 'razorpay') {
+    return { provider: 'razorpay', order: { id: 'rzp_demo_order_id' } };
+  }
+  if (provider === 'stripe') {
+    return { provider: 'stripe', clientSecret: 'stripe_demo_client_secret' };
+  }
+  throw new Error('Unsupported provider');
+};
+# NutriSphere Monorepo Quick Start
+
+## 1. Install dependencies
+
+### Mobile (React Native)
+```bash
+cd apps/mobile
+npm install
+```
+
+### Backend (Express.js)
+```bash
+cd apps/backend
+npm install
+```
+
+## 2. Run backend API
+
+```bash
+node server.js
+```
+Backend runs at http://localhost:3001
+
+## 3. Run mobile app
+
+```bash
+expo start
+```
+Scan QR code with Expo Go on your mobile device.
+
+## 4. Test Demo, Activation, and Payment
+
+- Register/login (dummy flow).
+- Try demo features.
+- Activate with payment (simulated for demo).
+
+---
+
+**Integrate real Firebase, Razorpay, Stripe SDKs, and proper authentication for production. Add your payment keys in environment/config files.**
+  );
+}
